@@ -275,6 +275,15 @@ fn do_line(p: &mut Prog) {
             let imm = imm.parse::<u32>().unwrap();
             p.state.set_reg(rd, imm);
         }
+        "j" => {
+            let label = &cur_line.args[0];
+            let label = p.labels.get(label).unwrap();
+            p.state.pc = *label as i32;
+        }
+        "exit" => {
+            log("Exiting gracefully");
+            p.state.pc = -1;
+        }
         &_ => todo!(),
     }
 }
