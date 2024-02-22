@@ -19,15 +19,24 @@ export default function TextBox() {
     setState(e.target.value);
   };
 
-  const doParse = () => {
+  const run = () => {
     run_prog(state);
   };
 
   return (
-    <>
-      <textarea value={state} onChange={handleChange} />
-      <button onClick={doParse}>Parse</button>
-      <RegisterDisplay regFile={regFile} />
-    </>
+    <div className="flex-row flex gap-4 m-4 justify-start">
+      <div className="flex flex-col gap-4 content-center items-center">
+        <div>
+          <h2 className="text-xl">Enter Code & Click Run</h2>
+        </div>
+        <div className="w-fit">
+          <textarea className="border-gray-400 min-w-96 min-h-96 h-fit border-2 p-2" value={state} onChange={handleChange} />
+        </div>
+        <div>
+          <button onClick={run} className="border-slate-500 p-2 rounded-lg bg-slate-200 hover:bg-slate-300 active:bg-slate-400 shadow-md shadow-slate-200 min-w-24">Run</button>
+        </div>
+      </div>
+      <RegisterDisplay reg={regFile} />
+    </div>
   );
 }
