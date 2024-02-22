@@ -284,6 +284,28 @@ fn do_line(p: &mut Prog) {
             log("Exiting gracefully");
             p.state.pc = -1;
         }
+        "lw" => {
+            let rt = &cur_line.args[0];
+            let rs = &cur_line.args[1];
+            let imm = &cur_line.args[2];
+            let rt = get_reg_id_from_name(rt);
+            let rs = get_reg_id_from_name(rs);
+            let imm = imm.parse::<u32>().unwrap();
+            let addr = p.state.read_reg(rs) + imm;
+            let val = p.state.read_mem(addr);
+            p.state.set_reg(rt, val as u32);
+        }
+        "sw" => {
+            let rt = &cur_line.args[0];
+            let rs = &cur_line.args[1];
+            let imm = &cur_line.args[2];
+            let rt = get_reg_id_from_name(rt);
+            let rs = get_reg_id_from_name(rs);
+            let imm = imm.parse::<u32>().unwrap();
+            let addr = p.state.read_reg(rs) + imm;
+            let val = p.state.read_reg(rt);
+            p.state.write_mem(addr, val as u8);
+        }
         &_ => todo!(),
     }
 }
