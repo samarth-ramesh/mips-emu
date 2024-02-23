@@ -1,6 +1,8 @@
 use std::{borrow::Borrow, collections::HashMap};
 use wasm_bindgen::prelude::*;
 mod utils;
+mod parser;
+use parser::{parse_prog, Line};
 use js_sys::Uint32Array;
 use utils::set_panic_hook;
 #[wasm_bindgen]
@@ -59,166 +61,13 @@ pub fn greet() {
     alert("Hello, test-wasm!");
 }
 
-struct Line {
-    label: Option<String>,
-    instr: String,
-    args: Vec<String>,
-}
-
-fn parse_line(line: String) -> Line {
-    let mut it = line.split_whitespace();
-    let first = it.next().unwrap();
-    if first.chars().nth(0).unwrap() == '.' {
-        // label
-        return Line {
-            label: Some(first.to_string()),
-            instr: "".to_string(),
-            args: vec![],
-        };
-    }
-
-    match first {
-        "add" => {
-            let rd = it.next().unwrap();
-            let rs = it.next().unwrap();
-            let rt = it.next().unwrap();
-            Line {
-                label: None,
-                instr: first.to_string(),
-                args: vec![rd.to_string(), rs.to_string(), rt.to_string()],
-            }
-            // add rd, rs, rt
-            // rd = rs + rt
-        }
-        "sub" => {
-            let rd = it.next().unwrap();
-            let rs = it.next().unwrap();
-            let rt = it.next().unwrap();
-            Line {
-                label: None,
-                instr: first.to_string(),
-                args: vec![rd.to_string(), rs.to_string(), rt.to_string()],
-            }
-            // sub rd, rs, rt
-            // rd = rs - rt
-        }
-        "lw" => {
-            let rt = it.next().unwrap();
-            let rs = it.next().unwrap();
-            let imm = it.next().unwrap();
-            Line {
-                label: None,
-                instr: first.to_string(),
-                args: vec![rt.to_string(), rs.to_string(), imm.to_string()],
-            }
-            // lw rt, imm(rs)
-            // rt = mem[rs + imm]
-        }
-        "sw" => {
-            let rt = it.next().unwrap();
-            let rs = it.next().unwrap();
-            let imm = it.next().unwrap();
-            Line {
-                label: None,
-                instr: first.to_string(),
-                args: vec![rt.to_string(), rs.to_string(), imm.to_string()],
-            }
-            // sw rt, imm(rs)
-            // mem[rs + imm] = rt
-        }
-        "beq" => {
-            let rs = it.next().unwrap();
-            let rt = it.next().unwrap();
-            let label = it.next().unwrap();
-            Line {
-                label: None,
-                instr: first.to_string(),
-                args: vec![rs.to_string(), rt.to_string(), label.to_string()],
-            }
-            // beq rs, rt, label
-            // if rs == rt, pc = label
-        }
-        "bne" => {
-            let rs = it.next().unwrap();
-            let rt = it.next().unwrap();
-            let label = it.next().unwrap();
-            Line {
-                label: None,
-                instr: first.to_string(),
-                args: vec![rs.to_string(), rt.to_string(), label.to_string()],
-            }
-            // bne rs, rt, label
-            // if rs != rt, pc = label
-        }
-        "j" => {
-            let label = it.next().unwrap();
-            // j label
-            // pc = label
-            Line {
-                label: None,
-                instr: first.to_string(),
-                args: vec![label.to_string()],
-            }
-        }
-        "jal" => {
-            let label = it.next().unwrap();
-            Line {
-                label: None,
-                instr: first.to_string(),
-                args: vec![label.to_string()],
-            }
-            // jal label
-            // $ra = pc + 4
-        }
-        "mov" => {
-            let rd = it.next().unwrap();
-            let rs = it.next().unwrap();
-            Line {
-                label: None,
-                instr: first.to_string(),
-                args: vec![rd.to_string(), rs.to_string()],
-            }
-            // mov rd, rs
-            // rd = rs
-        }
-        "movi" => {
-            let rd = it.next().unwrap();
-            let imm = it.next().unwrap();
-            Line {
-                label: None,
-                instr: first.to_string(),
-                args: vec![rd.to_string(), imm.to_string()],
-            }
-            // movi rd, imm
-            // rd = imm
-        }
-        "exit" => Line {
-            label: None,
-            instr: first.to_string(),
-            args: vec![],
-        },
-        &_ => todo!(),
-    }
-}
-
 pub struct Prog {
     lines: Vec<Line>,
     labels: HashMap<String, u32>,
     state: State,
 }
 
-fn parse_prog(p: &mut Prog, prog: String) {
-    let mut pc = 0;
-    for line in prog.lines() {
-        let line = parse_line(line.to_string());
-        if line.label.is_some() {
-            p.labels.insert(line.label.unwrap(), pc);
-        } else {
-            p.lines.push(line);
-            pc += 4;
-        }
-    }
-}
+
 
 pub fn dump_prog(p: &Prog) {
     for line in p.lines.as_slice() {
@@ -244,6 +93,7 @@ fn do_line(p: &mut Prog) {
     let idx = cur_pc / 4;
     if idx >= (p.lines.len() as i32) {
         log("Prog Done");
+
         p.state.pc = -1;
         return;
     }
