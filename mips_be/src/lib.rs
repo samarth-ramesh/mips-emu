@@ -160,6 +160,16 @@ fn do_line(p: &mut Prog) {
                 p.state.pc = *label as i32;
             }
         }
+        "sub" => {
+            let rd = &cur_line.instr.clone().unwrap().args[0];
+            let rs = &cur_line.instr.clone().unwrap().args[1];
+            let rt = &cur_line.instr.clone().unwrap().args[2];
+            let rd = get_reg_id_from_name(rd);
+            let rs = get_reg_id_from_name(rs);
+            let rt = get_reg_id_from_name(rt);
+            let val = p.state.read_reg(rs) - p.state.read_reg(rt);
+            p.state.set_reg(rd, val);
+        }
         &_ => todo!(),
     }
 }
