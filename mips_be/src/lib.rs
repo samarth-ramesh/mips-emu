@@ -56,23 +56,16 @@ impl State {
     }
 }
 
-#[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, test-wasm!");
-}
-
 pub struct Prog {
     lines: Vec<Line>,
     labels: HashMap<String, u32>,
     state: State,
 }
 
-
-
 pub fn dump_prog(p: &Prog) {
     for line in p.lines.as_slice() {
         if !line.label.is_some() {
-            log(format!("{} {}", line.instr, line.args.join(", ")).as_str());
+            log(format!("{} {}", line.instr.clone().unwrap().instr, line.instr.clone().unwrap().args.join(", ")).as_str());
         }
     }
     for label in p.labels.clone() {
@@ -99,19 +92,19 @@ fn do_line(p: &mut Prog) {
     }
     let cur_line = p.lines[idx as usize].borrow();
     p.state.pc += 4;
-    match cur_line.instr.as_str() {
+    match cur_line.instr.as_ref().unwrap().instr.as_str() {
         "mov" => {
-            let rd = &cur_line.args[0];
-            let rs = &cur_line.args[1];
+            let rd = &cur_line.instr.clone().unwrap().args[0];
+            let rs = &cur_line.instr.clone().unwrap().args[1];
             let rd = get_reg_id_from_name(rd);
             let rs = get_reg_id_from_name(rs);
             let val = p.state.read_reg(rs);
             p.state.set_reg(rd, val);
         }
         "add" => {
-            let rd = &cur_line.args[0];
-            let rs = &cur_line.args[1];
-            let rt = &cur_line.args[2];
+            let rd = &cur_line.instr.clone().unwrap().args[0];
+            let rs = &cur_line.instr.clone().unwrap().args[1];
+            let rt = &cur_line.instr.clone().unwrap().args[2];
             let rd = get_reg_id_from_name(rd);
             let rs = get_reg_id_from_name(rs);
             let rt = get_reg_id_from_name(rt);
@@ -119,14 +112,14 @@ fn do_line(p: &mut Prog) {
             p.state.set_reg(rd, val);
         }
         "movi" => {
-            let rd = &cur_line.args[0];
-            let imm = &cur_line.args[1];
+            let rd = &cur_line.instr.clone().unwrap().args[0];
+            let imm = &cur_line.instr.clone().unwrap().args[1];
             let rd = get_reg_id_from_name(rd);
             let imm = imm.parse::<u32>().unwrap();
             p.state.set_reg(rd, imm);
         }
         "j" => {
-            let label = &cur_line.args[0];
+            let label = &cur_line.instr.clone().unwrap().args[0];
             let label = p.labels.get(label).unwrap();
             p.state.pc = *label as i32;
         }
@@ -135,9 +128,9 @@ fn do_line(p: &mut Prog) {
             p.state.pc = -1;
         }
         "lw" => {
-            let rt = &cur_line.args[0];
-            let rs = &cur_line.args[1];
-            let imm = &cur_line.args[2];
+            let rt = &cur_line.instr.clone().unwrap().args[0];
+            let rs = &cur_line.instr.clone().unwrap().args[1];
+            let imm = &cur_line.instr.clone().unwrap().args[2];
             let rt = get_reg_id_from_name(rt);
             let rs = get_reg_id_from_name(rs);
             let imm = imm.parse::<u32>().unwrap();
@@ -146,9 +139,9 @@ fn do_line(p: &mut Prog) {
             p.state.set_reg(rt, val as u32);
         }
         "sw" => {
-            let rt = &cur_line.args[0];
-            let rs = &cur_line.args[1];
-            let imm = &cur_line.args[2];
+            let rt = &cur_line.instr.clone().unwrap().args[0];
+            let rs = &cur_line.instr.clone().unwrap().args[1];
+            let imm = &cur_line.instr.clone().unwrap().args[2];
             let rt = get_reg_id_from_name(rt);
             let rs = get_reg_id_from_name(rs);
             let imm = imm.parse::<u32>().unwrap();

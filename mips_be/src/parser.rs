@@ -3,6 +3,11 @@ use crate::Prog;
 #[derive(Clone)]
 pub struct Line {
     pub label: Option<String>,
+    pub instr: Option<Instr>,
+}
+
+#[derive(Clone)]
+pub struct Instr {
     pub instr: String,
     pub args: Vec<String>,
 }
@@ -19,7 +24,7 @@ pub fn parse_prog(p: &mut Prog, prog: String) {
                     }
                     None => {}
                 }
-                match l.clone().instr.as_str() {
+                match l.clone().instr.unwrap().instr.as_str() {
                     "" => {} // line with label, no instr
                     &_ => {
                         p.lines.push(l);
@@ -42,11 +47,14 @@ fn parse_line(line: String) -> Option<Line> {
             first = match it.next() {
                 Some(s) => s,
                 None => {
-                    return Some(Line { // label, but not instr
+                    return Some(Line {
+                        // label, but not instr
                         label: rv,
-                        instr: String::from(""),
-                        args: vec![],
-                    })
+                        instr: Some(Instr {
+                            instr: String::from(""),
+                            args: vec![],
+                        }),
+                    });
                 }
             };
             rv // label & instr in line
@@ -62,8 +70,10 @@ fn parse_line(line: String) -> Option<Line> {
             let rt = it.next().unwrap();
             Some(Line {
                 label: label,
-                instr: first.to_string(),
-                args: vec![rd.to_string(), rs.to_string(), rt.to_string()],
+                instr: Some(Instr {
+                    instr: first.to_string(),
+                    args: vec![rd.to_string(), rs.to_string(), rt.to_string()],
+                }),
             })
             // add rd, rs, rt
             // rd = rs + rt
@@ -74,8 +84,10 @@ fn parse_line(line: String) -> Option<Line> {
             let rt = it.next().unwrap();
             Some(Line {
                 label: label,
-                instr: first.to_string(),
-                args: vec![rd.to_string(), rs.to_string(), rt.to_string()],
+                instr: Some(Instr {
+                    instr: first.to_string(),
+                    args: vec![rd.to_string(), rs.to_string(), rt.to_string()],
+                }),
             })
             // sub rd, rs, rt
             // rd = rs - rt
@@ -86,8 +98,10 @@ fn parse_line(line: String) -> Option<Line> {
             let imm = it.next().unwrap();
             Some(Line {
                 label: label,
-                instr: first.to_string(),
-                args: vec![rt.to_string(), rs.to_string(), imm.to_string()],
+                instr: Some(Instr {
+                    instr: first.to_string(),
+                    args: vec![rt.to_string(), rs.to_string(), imm.to_string()],
+                }),
             })
             // lw rt, imm(rs)
             // rt = mem[rs + imm]
@@ -98,8 +112,10 @@ fn parse_line(line: String) -> Option<Line> {
             let imm = it.next().unwrap();
             Some(Line {
                 label: label,
-                instr: first.to_string(),
-                args: vec![rt.to_string(), rs.to_string(), imm.to_string()],
+                instr: Some(Instr {
+                    instr: first.to_string(),
+                    args: vec![rt.to_string(), rs.to_string(), imm.to_string()],
+                }),
             })
             // sw rt, imm(rs)
             // mem[rs + imm] = rt
@@ -110,8 +126,10 @@ fn parse_line(line: String) -> Option<Line> {
             let label2 = it.next().unwrap();
             Some(Line {
                 label: label,
-                instr: first.to_string(),
-                args: vec![rs.to_string(), rt.to_string(), label2.to_string()],
+                instr: Some(Instr {
+                    instr: first.to_string(),
+                    args: vec![rs.to_string(), rt.to_string(), label2.to_string()],
+                }),
             })
             // beq rs, rt, label
             // if rs == rt, pc = label
@@ -122,8 +140,10 @@ fn parse_line(line: String) -> Option<Line> {
             let label2 = it.next().unwrap();
             Some(Line {
                 label: label,
-                instr: first.to_string(),
-                args: vec![rs.to_string(), rt.to_string(), label2.to_string()],
+                instr: Some(Instr {
+                    instr: first.to_string(),
+                    args: vec![rs.to_string(), rt.to_string(), label2.to_string()],
+                }),
             })
             // bne rs, rt, label
             // if rs != rt, pc = label
@@ -134,16 +154,20 @@ fn parse_line(line: String) -> Option<Line> {
             // pc = label
             Some(Line {
                 label: label,
-                instr: first.to_string(),
-                args: vec![label2.to_string()],
+                instr: Some(Instr {
+                    instr: first.to_string(),
+                    args: vec![label2.to_string()],
+                }),
             })
         }
         "jal" => {
             let label2 = it.next().unwrap();
             Some(Line {
                 label: label,
-                instr: first.to_string(),
-                args: vec![label2.to_string()],
+                instr: Some(Instr {
+                    instr: first.to_string(),
+                    args: vec![label2.to_string()],
+                }),
             })
             // jal label
             // $ra = pc + 4
@@ -153,8 +177,10 @@ fn parse_line(line: String) -> Option<Line> {
             let rs = it.next().unwrap();
             Some(Line {
                 label: label,
-                instr: first.to_string(),
-                args: vec![rd.to_string(), rs.to_string()],
+                instr: Some(Instr {
+                    instr: first.to_string(),
+                    args: vec![rd.to_string(), rs.to_string()],
+                }),
             })
             // mov rd, rs
             // rd = rs
@@ -164,16 +190,20 @@ fn parse_line(line: String) -> Option<Line> {
             let imm = it.next().unwrap();
             Some(Line {
                 label: label,
-                instr: first.to_string(),
-                args: vec![rd.to_string(), imm.to_string()],
+                instr: Some(Instr {
+                    instr: first.to_string(),
+                    args: vec![rd.to_string(), imm.to_string()],
+                }),
             })
             // movi rd, imm
             // rd = imm
         }
         "exit" => Some(Line {
             label: None,
-            instr: first.to_string(),
-            args: vec![],
+            instr: Some(Instr {
+                instr: first.to_string(),
+                args: vec![],
+            }),
         }),
         &_ => todo!(),
     }
