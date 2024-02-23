@@ -148,6 +148,20 @@ fn parse_line(line: String) -> Option<Line> {
             // bne rs, rt, label
             // if rs != rt, pc = label
         }
+        "blt" => {
+            let rs = it.next().unwrap();
+            let rt = it.next().unwrap();
+            let label2 = it.next().unwrap();
+            Some(Line {
+                label: label,
+                instr: Some(Instr {
+                    instr: first.to_string(),
+                    args: vec![rs.to_string(), rt.to_string(), label2.to_string()],
+                }),
+            })
+            // blt rs, rt, label
+            // if rs <= rt, pc = label
+        }
         "j" => {
             let label2 = it.next().unwrap();
             // j label

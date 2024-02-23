@@ -149,6 +149,17 @@ fn do_line(p: &mut Prog) {
             let val = p.state.read_reg(rt);
             p.state.write_mem(addr, val as u8);
         }
+        "blt" => {
+            let rs = &cur_line.instr.clone().unwrap().args[0];
+            let rt = &cur_line.instr.clone().unwrap().args[1];
+            let label = &cur_line.instr.clone().unwrap().args[2];
+            let rs = get_reg_id_from_name(rs);
+            let rt = get_reg_id_from_name(rt);
+            let label = p.labels.get(label).unwrap();
+            if p.state.read_reg(rs) < p.state.read_reg(rt) {
+                p.state.pc = *label as i32;
+            }
+        }
         &_ => todo!(),
     }
 }
