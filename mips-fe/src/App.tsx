@@ -12,7 +12,7 @@ function App() {
 
   if (available) {
     return (
-        <div className="flex flex-col items-center justify-evenly h-screen">
+        <div className="flex flex-col items-center justify-evenly min-h-screen">
           <h1 className="text-5xl">MIPS Emulator</h1>
           <TextBox />
         </div>
